@@ -3,16 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Caja Moto Repuestos Jesús - FINAL</title>
+    <title>Caja Moto Repuestos Jesús - EDITABLE</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         .header-negro { background: #000; color: white; padding: 4px; font-weight: bold; text-align: center; font-size: 10px; text-transform: uppercase; }
-        /* Se usa onchange para que el cálculo se haga al terminar de escribir y no interrumpa */
         input { border: 1px solid #cbd5e1; padding: 4px; border-radius: 2px; width: 100%; outline: none; font-size: 11px; text-align: center; }
         input:focus { border-color: #2563eb; background: #f0f9ff; border-width: 2px; }
         td { border: 1px solid #cbd5e1; padding: 2px; }
         .col-bs { background-color: #f8fafc; }
+        .btn-editar { background-color: #2563eb; color: white; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 10px; }
+        .btn-editar:hover { background-color: #1e40af; }
     </style>
 </head>
 <body class="bg-gray-200 p-2 text-[10px] font-sans">
@@ -23,57 +24,34 @@
                 <h1 class="text-xl font-black italic text-blue-900 leading-none">MOTO REPUESTOS JESÚS</h1>
                 <div class="flex gap-2 mt-1">
                     <span class="font-bold uppercase">Fecha:</span>
-                    <input type="text" id="fechaDia" class="border-none p-0 w-32 text-left font-bold" value="31 de Diciembre">
+                    <input type="text" id="fechaDia" class="border-none p-0 w-48 text-left font-bold" onchange="actualizarMetadata()">
                 </div>
             </div>
             <div class="flex items-center gap-6">
                 <div class="bg-blue-50 p-2 rounded border-2 border-blue-200">
                     <span class="block text-[9px] font-bold text-blue-800 uppercase text-center">Tasa BCV</span>
-                    <input type="number" id="tasa" value="60.00" step="0.01" onchange="render()" class="w-28 text-right font-black text-blue-700 text-xl border-none bg-transparent">
+                    <input type="number" id="tasa" step="0.01" onchange="actualizarTasa(this.value)" class="w-28 text-right font-black text-blue-700 text-xl border-none bg-transparent">
                 </div>
                 <button onclick="cerrarYGuardar()" class="bg-green-600 hover:bg-black text-white font-black px-6 py-4 rounded shadow-xl uppercase transition-all">Guardar Cierre Diario</button>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-            
             <div class="lg:col-span-9 space-y-4">
                 <div class="bg-white rounded shadow overflow-hidden">
-                    <div class="header-negro">Control de Ventas e Ingresos</div>
+                    <div class="header-negro">Registro de Ventas</div>
                     <table class="w-full text-[10px]">
                         <thead class="bg-gray-100 font-bold text-center uppercase">
                             <tr>
-                                <td rowspan="2" class="w-16">Fact.</td>
-                                <td rowspan="2">Cliente</td>
-                                <td rowspan="2" class="bg-green-100 text-green-800 w-24">$ Divisa</td>
+                                <td>Fact.</td><td>Cliente</td><td class="bg-green-100">$ Divisa</td>
                                 <td colspan="3" class="col-bs">Bolívares (Bs)</td>
-                                <td rowspan="2" class="bg-gray-200 w-24">Total Bs</td>
-                                <td rowspan="2" class="bg-yellow-50 text-orange-700 w-20">Equiv. $</td>
-                                <td rowspan="2" class="bg-blue-900 text-white font-black w-24">Total Fact $</td>
-                                <td rowspan="2" class="w-8"></td>
-                            </tr>
-                            <tr class="bg-gray-50 text-[9px]">
-                                <td class="col-bs w-20">Bs Efec.</td>
-                                <td class="col-bs w-20">Débito</td>
-                                <td class="col-bs w-20">P. Móvil</td>
+                                <td class="bg-gray-200">Total Bs</td><td class="bg-yellow-50">Equiv $</td>
+                                <td class="bg-blue-900 text-white font-black">Total Fact $</td><td></td>
                             </tr>
                         </thead>
                         <tbody id="cuerpoVentas"></tbody>
-                        <tfoot class="bg-gray-800 text-white font-bold">
-                            <tr>
-                                <td colspan="2" class="text-right p-2 uppercase">Totales:</td>
-                                <td id="totDivisa" class="text-right text-green-400">0.00</td>
-                                <td id="totBsEfe" class="text-right">0.00</td>
-                                <td id="totDeb" class="text-right">0.00</td>
-                                <td id="totPM" class="text-right">0.00</td>
-                                <td id="totSumaBs" class="text-right text-blue-300">0.00</td>
-                                <td id="totConvertido" class="text-right text-yellow-400">0.00</td>
-                                <td id="totFacturado" class="text-right text-white text-sm">0.00</td>
-                                <td></td>
-                            </tr>
-                        </tfoot>
                     </table>
-                    <button onclick="nuevaVenta()" class="w-full py-2 bg-blue-50 text-blue-700 font-bold hover:bg-blue-100 border-t border-blue-200">+ AGREGAR FILA DE VENTA</button>
+                    <button onclick="nuevaVenta()" class="w-full py-2 bg-blue-50 text-blue-700 font-bold border-t border-blue-200">+ AGREGAR FACTURA</button>
                 </div>
 
                 <div class="grid grid-cols-3 gap-4">
@@ -97,134 +75,110 @@
 
             <div class="lg:col-span-3 space-y-4">
                 <div class="bg-white p-3 rounded shadow border-2 border-black">
-                    <h2 class="text-center font-black mb-2 border-b-2 border-black uppercase">Billetes en Caja ($)</h2>
-                    <table class="w-full font-bold">
-                        <tbody id="cuerpoBilletes"></tbody>
-                        <tr class="bg-gray-100 border-t-2 border-black">
-                            <td colspan="2">TOTAL EFECTIVO $:</td>
-                            <td id="resCajaUsd" class="text-right text-green-700 text-sm font-black">0.00</td>
-                        </tr>
-                    </table>
+                    <h2 class="text-center font-black mb-2 border-b-2 border-black uppercase">Billetes $</h2>
+                    <table class="w-full font-bold"><tbody id="cuerpoBilletes"></tbody></table>
+                    <div class="mt-2 text-right font-black text-green-700 border-t border-black">TOTAL: <span id="resCajaUsd">0.00</span></div>
                 </div>
 
                 <div class="bg-white p-3 rounded shadow border-2 border-blue-700">
-                    <h2 class="text-center font-black mb-2 border-b-2 border-blue-700 uppercase">Relación Bolívares</h2>
-                    <div class="flex justify-between font-bold text-xs"><span>Ventas Bs Efec:</span><span id="labelBsEfe">0.00</span></div>
-                    <div id="listaGastosBs" class="space-y-1 mt-2"></div>
-                    <button onclick="nuevoGastoBs()" class="text-[9px] text-blue-600 font-bold mt-2 underline">+ Restar Gasto en Bs</button>
-                    <div class="flex justify-between bg-blue-700 text-white p-2 font-black rounded mt-2 text-xs"><span>Bs Netos en Mano:</span><span id="labelBsDisponible">0.00</span></div>
+                    <h2 class="text-center font-black mb-2 border-b-2 border-blue-700 uppercase">Relación Bs</h2>
+                    <div id="listaGastosBs"></div>
+                    <button onclick="nuevoGastoBs()" class="text-blue-600 underline font-bold text-[9px] mt-2">+ Gasto Bs</button>
+                    <div class="mt-2 p-2 bg-blue-700 text-white font-black flex justify-between rounded"><span>NETO BS:</span><span id="labelBsDisponible">0.00</span></div>
                 </div>
 
                 <div id="cardCuadre" class="p-4 rounded shadow text-white flex flex-col items-center">
-                    <span class="text-[9px] font-bold uppercase opacity-80 italic">Saldo esperado en $ Divisa</span>
                     <span id="finalEntregaUsd" class="text-2xl font-black">$ 0.00</span>
-                    <span id="statusTexto" class="text-[10px] font-black uppercase mt-1"></span>
+                    <span id="statusTexto" class="font-black uppercase"></span>
                 </div>
             </div>
         </div>
 
         <div class="bg-white rounded shadow p-4 border-t-4 border-black">
-            <h2 class="font-black text-sm mb-4 uppercase flex items-center gap-2">📂 Base de Datos de Cierres Guardados</h2>
-            <div class="overflow-x-auto">
-                <table class="w-full border-collapse">
-                    <thead class="bg-gray-800 text-white font-bold text-[9px] uppercase">
-                        <tr>
-                            <td class="p-2 border">Fecha</td>
-                            <td class="p-2 border">Total Facturado $</td>
-                            <td class="p-2 border">Físico en Divisa $</td>
-                            <td class="p-2 border">Bs Disponible</td>
-                            <td class="p-2 border">Estado</td>
-                            <td class="p-2 border text-center">Acción</td>
-                        </tr>
-                    </thead>
-                    <tbody id="historial"></tbody>
-                </table>
-            </div>
+            <h2 class="font-black text-sm mb-4 uppercase">📂 Historial de Cierres (Editable)</h2>
+            <table class="w-full border-collapse">
+                <thead class="bg-gray-800 text-white font-bold uppercase">
+                    <tr>
+                        <td class="p-2">Fecha</td><td class="p-2">Facturado $</td><td class="p-2">Caja $</td><td class="p-2 text-center">Acciones</td>
+                    </tr>
+                </thead>
+                <tbody id="historial"></tbody>
+            </table>
         </div>
     </div>
 
     <script>
-        // Mantenemos la misma clave moto_v12 para no borrar tus datos
-        let db = JSON.parse(localStorage.getItem('moto_v12')) || {
+        let db = JSON.parse(localStorage.getItem('moto_v13')) || {
             ventas: [{f:'', c:'', div:0, bse:0, deb:0, pm:0}],
-            gastosUsd: [], ingresos: [], cuentas: [], gastosBs: [], billetes: {}
+            gastosUsd: [], ingresos: [], cuentas: [], gastosBs: [], billetes: {}, tasa: 60.00, fecha: '31 de Diciembre'
         };
-        let log = JSON.parse(localStorage.getItem('moto_log_v12')) || [];
+        let log = JSON.parse(localStorage.getItem('moto_log_v13')) || [];
 
         function render() {
-            const t = parseFloat(document.getElementById('tasa').value) || 1;
-            
-            // Render Ventas
+            const t = db.tasa || 60;
+            document.getElementById('tasa').value = t;
+            document.getElementById('fechaDia').value = db.fecha;
+
+            // Ventas
             const lv = document.getElementById('cuerpoVentas'); lv.innerHTML = "";
-            let sDiv=0, sBse=0, sDeb=0, sPM=0, sSumaBs=0, sConvUsd=0, sFact=0;
+            let sDiv=0, sBse=0, sDeb=0, sPM=0, sSumaBs=0, sFact=0;
             db.ventas.forEach((v, i) => {
-                const sumaBsFila = (v.bse||0) + (v.deb||0) + (v.pm||0);
-                const equivUsd = sumaBsFila / t;
+                const sumaBs = (v.bse||0) + (v.deb||0) + (v.pm||0);
+                const equivUsd = sumaBs / t;
                 const totalF = (v.div||0) + equivUsd;
-                sDiv+=v.div||0; sBse+=v.bse||0; sDeb+=v.deb||0; sPM+=v.pm||0; sSumaBs+=sumaBsFila; sConvUsd+=equivUsd; sFact+=totalF;
-                
+                sDiv+=v.div||0; sBse+=v.bse||0; sSumaBs+=sumaBs; sFact+=totalF;
                 lv.innerHTML += `<tr>
                     <td><input type="text" value="${v.f}" onchange="updV(${i},'f',this.value)"></td>
                     <td><input type="text" value="${v.c}" onchange="updV(${i},'c',this.value)"></td>
-                    <td class="bg-green-50"><input type="number" step="any" value="${v.div||''}" class="text-right font-bold text-green-700" onchange="updV(${i},'div',this.value)"></td>
-                    <td class="col-bs"><input type="number" step="any" value="${v.bse||''}" onchange="updV(${i},'bse',this.value)"></td>
-                    <td class="col-bs"><input type="number" step="any" value="${v.deb||''}" onchange="updV(${i},'deb',this.value)"></td>
-                    <td class="col-bs"><input type="number" step="any" value="${v.pm||''}" onchange="updV(${i},'pm',this.value)"></td>
-                    <td class="bg-gray-100 text-right font-bold">${sumaBsFila.toFixed(2)}</td>
-                    <td class="text-right text-orange-700">${equivUsd.toFixed(2)}</td>
-                    <td class="bg-blue-900 text-white text-right font-black">${totalF.toFixed(2)}</td>
-                    <td class="text-center"><button onclick="borrarV(${i})" class="text-red-400 font-bold">×</button></td>
+                    <td><input type="number" value="${v.div||''}" onchange="updV(${i},'div',this.value)"></td>
+                    <td class="col-bs"><input type="number" value="${v.bse||''}" onchange="updV(${i},'bse',this.value)"></td>
+                    <td class="col-bs"><input type="number" value="${v.deb||''}" onchange="updV(${i},'deb',this.value)"></td>
+                    <td class="col-bs"><input type="number" value="${v.pm||''}" onchange="updV(${i},'pm',this.value)"></td>
+                    <td class="text-right font-bold">${sumaBs.toFixed(2)}</td>
+                    <td class="text-right text-orange-600">${equivUsd.toFixed(2)}</td>
+                    <td class="bg-blue-900 text-white font-black text-right">${totalF.toFixed(2)}</td>
+                    <td class="text-center"><button onclick="borrarV(${i})" class="text-red-500 font-bold">X</button></td>
                 </tr>`;
             });
-            document.getElementById('totDivisa').innerText = sDiv.toFixed(2);
-            document.getElementById('totBsEfe').innerText = sBse.toFixed(2);
-            document.getElementById('totDeb').innerText = sDeb.toFixed(2);
-            document.getElementById('totPM').innerText = sPM.toFixed(2);
-            document.getElementById('totSumaBs').innerText = sSumaBs.toFixed(2);
-            document.getElementById('totConvertido').innerText = sConvUsd.toFixed(2);
-            document.getElementById('totFacturado').innerText = sFact.toFixed(2);
 
-            // Otros Cuadros ($)
+            // Movimientos $
             let tG=0, tI=0, tC=0;
             renderMovTable('tablaGastosUsd', 'gastosUsd', (val) => tG += val);
             renderMovTable('tablaIngresos', 'ingresos', (val) => tI += val);
             renderMovTable('tablaCuentas', 'cuentas', (val) => tC += val);
 
-            // Billetes en Caja
+            // Billetes
             const bCont = document.getElementById('cuerpoBilletes'); bCont.innerHTML = "";
             let tCajaUsd = 0;
             [100,50,20,10,5,2,1].forEach(den => {
                 const cant = db.billetes[den] || 0; tCajaUsd += (cant * den);
-                bCont.innerHTML += `<tr><td>${den} $</td><td><input type="number" value="${cant||''}" onchange="updBill(${den},this.value)"></td><td class="text-right text-gray-400 font-mono">${(cant*den).toFixed(2)}</td></tr>`;
+                bCont.innerHTML += `<tr><td>${den}$</td><td><input type="number" value="${cant||''}" onchange="updBill(${den},this.value)"></td><td class="text-right">${(cant*den).toFixed(2)}</td></tr>`;
             });
             document.getElementById('resCajaUsd').innerText = tCajaUsd.toFixed(2);
 
-            // Relación Bs
+            // Gastos Bs
             const gBsCont = document.getElementById('listaGastosBs'); gBsCont.innerHTML = "";
             let tGBs = 0;
             db.gastosBs.forEach((g, i) => {
                 tGBs += g.m || 0;
-                gBsCont.innerHTML += `<div class="flex gap-1"><input type="text" value="${g.d}" onchange="updGBs(${i},'d',this.value)"><input type="number" value="${g.m||''}" class="w-16" onchange="updGBs(${i},'m',this.value)"><button onclick="delGBs(${i})" class="text-red-400">×</button></div>`;
+                gBsCont.innerHTML += `<div class="flex gap-1 mb-1"><input type="text" value="${g.d}" onchange="updGBs(${i},'d',this.value)"><input type="number" value="${g.m||''}" onchange="updGBs(${i},'m',this.value)"><button onclick="delGBs(${i})">×</button></div>`;
             });
-            document.getElementById('labelBsEfe').innerText = sBse.toFixed(2);
             document.getElementById('labelBsDisponible').innerText = (sBse - tGBs).toFixed(2);
 
-            // Lógica Cuadre Final: Ventas Divisa + Ingresos - Gastos - Ctas Cobrar
-            const esperadoDivisa = sDiv + tI - tG - tC;
-            const dif = tCajaUsd - esperadoDivisa;
-            document.getElementById('finalEntregaUsd').innerText = `$ ${esperadoDivisa.toFixed(2)}`;
-            
+            // Cuadre
+            const esperado = sDiv + tI - tG - tC;
+            const dif = tCajaUsd - esperado;
+            document.getElementById('finalEntregaUsd').innerText = `$ ${esperado.toFixed(2)}`;
             const card = document.getElementById('cardCuadre');
             const status = document.getElementById('statusTexto');
             if(Math.abs(dif) < 0.1) { card.className="p-4 rounded shadow bg-green-600 flex flex-col items-center"; status.innerText="Caja Cuadrada"; }
-            else if(dif > 0) { card.className="p-4 rounded shadow bg-blue-600 flex flex-col items-center"; status.innerText=`Sobra: $${dif.toFixed(2)}`; }
-            else { card.className="p-4 rounded shadow bg-red-600 flex flex-col items-center"; status.innerText=`Falta: $${Math.abs(dif).toFixed(2)}`; }
+            else { card.className="p-4 rounded shadow bg-red-600 flex flex-col items-center"; status.innerText= dif > 0 ? `Sobra: $${dif.toFixed(2)}` : `Falta: $${Math.abs(dif).toFixed(2)}`; }
 
-            localStorage.setItem('moto_v12', JSON.stringify(db));
+            localStorage.setItem('moto_v13', JSON.stringify(db));
             renderHistorial();
         }
 
-        // Funciones auxiliares
+        // AUXILIARES
         function updV(i,k,v) { db.ventas[i][k] = (k==='f'||k==='c') ? v : parseFloat(v)||0; render(); }
         function nuevaVenta() { db.ventas.push({f:'', c:'', div:0, bse:0, deb:0, pm:0}); render(); }
         function borrarV(i) { db.ventas.splice(i,1); render(); }
@@ -232,38 +186,53 @@
         function nuevoMov(k) { db[k].push({f:'', m:0}); render(); }
         function renderMovTable(id, k, sumFn) {
             const t = document.getElementById(id); t.innerHTML = "";
-            db[k].forEach((m, i) => {
-                sumFn(m.m||0);
-                t.innerHTML += `<tr><td><input type="text" value="${m.f}" placeholder="Desc." onchange="updM('${k}',${i},'f',this.value)"></td><td><input type="number" step="any" value="${m.m||''}" onchange="updM('${k}',${i},'m',this.value)"></td><td><button onclick="delM('${k}',${i})" class="text-red-400 font-bold">×</button></td></tr>`;
-            });
+            db[k].forEach((m, i) => { sumFn(m.m||0); t.innerHTML += `<tr><td><input type="text" value="${m.f}" onchange="updM('${k}',${i},'f',this.value)"></td><td><input type="number" value="${m.m||''}" onchange="updM('${k}',${i},'m',this.value)"></td><td><button onclick="delM('${k}',${i})">×</button></td></tr>`; });
         }
         function updM(k,i,f,v) { db[k][i][f] = f==='m'? parseFloat(v)||0 : v; render(); }
         function delM(k,i) { db[k].splice(i,1); render(); }
         function nuevoGastoBs() { db.gastosBs.push({d:'', m:0}); render(); }
         function updGBs(i,f,v) { db.gastosBs[i][f] = f==='m'? parseFloat(v)||0 : v; render(); }
         function delGBs(i) { db.gastosBs.splice(i,1); render(); }
+        function actualizarTasa(v) { db.tasa = parseFloat(v); render(); }
+        function actualizarMetadata() { db.fecha = document.getElementById('fechaDia').value; }
 
+        // CIERRE Y EDITAR
         function cerrarYGuardar() {
-            if(!confirm("¿Deseas cerrar el día? Esto limpiará la tabla actual y la pasará al historial.")) return;
+            if(!confirm("¿Guardar cierre?")) return;
             log.unshift({
-                f: document.getElementById('fechaDia').value,
-                tf: document.getElementById('totFacturado').innerText,
-                ed: document.getElementById('resCajaUsd').innerText,
-                ebs: document.getElementById('labelBsDisponible').innerText,
-                st: document.getElementById('statusTexto').innerText
+                resumen: { fecha: db.fecha, tFact: document.getElementById('finalEntregaUsd').innerText, tCaja: document.getElementById('resCajaUsd').innerText },
+                datos: JSON.parse(JSON.stringify(db))
             });
-            localStorage.setItem('moto_log_v12', JSON.stringify(log));
-            db = { ventas: [{f:'', c:'', div:0, bse:0, deb:0, pm:0}], gastosUsd: [], ingresos: [], cuentas: [], gastosBs: [], billetes: {} };
+            localStorage.setItem('moto_log_v13', JSON.stringify(log));
+            db = { ventas: [{f:'', c:'', div:0, bse:0, deb:0, pm:0}], gastosUsd: [], ingresos: [], cuentas: [], gastosBs: [], billetes: {}, tasa: db.tasa, fecha: 'Nuevo Día' };
             render();
         }
 
         function renderHistorial() {
             const h = document.getElementById('historial'); h.innerHTML = "";
             log.forEach((l, i) => {
-                h.innerHTML += `<tr class="border-b text-[10px]"><td class="p-2 border font-bold">${l.f}</td><td class="p-2 border">$ ${l.tf}</td><td class="p-2 border font-black text-green-700">$ ${l.ed}</td><td class="p-2 border">${l.ebs} Bs</td><td class="p-2 border uppercase font-black text-[8px]">${l.st}</td><td class="p-2 border text-center"><button onclick="borrarLog(${i})" class="text-red-500 underline">Borrar</button></td></tr>`;
+                h.innerHTML += `<tr class="border-b">
+                    <td class="p-2 font-bold">${l.resumen.fecha}</td>
+                    <td class="p-2">${l.resumen.tFact}</td>
+                    <td class="p-2 font-bold text-green-700">${l.resumen.tCaja}</td>
+                    <td class="p-2 text-center">
+                        <button onclick="editarRegistro(${i})" class="btn-editar">EDITAR</button>
+                        <button onclick="borrarLog(${i})" class="ml-2 text-red-500">Eliminar</button>
+                    </td>
+                </tr>`;
             });
         }
-        function borrarLog(i) { if(confirm("¿Eliminar?")) { log.splice(i,1); localStorage.setItem('moto_log_v12', JSON.stringify(log)); renderHistorial(); } }
+
+        function editarRegistro(i) {
+            if(!confirm("¿Cargar estos datos para editarlos? El registro se quitará del historial.")) return;
+            db = JSON.parse(JSON.stringify(log[i].datos));
+            log.splice(i, 1);
+            localStorage.setItem('moto_log_v13', JSON.stringify(log));
+            render();
+            window.scrollTo(0, 0);
+        }
+
+        function borrarLog(i) { if(confirm("¿Borrar?")) { log.splice(i,1); localStorage.setItem('moto_log_v13', JSON.stringify(log)); renderHistorial(); } }
 
         render();
     </script>
