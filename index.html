@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuadre de Caja Diarios</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-4 md:p-8">
+    <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-xl">
+        <h1 class="text-2xl font-bold text-center mb-6 border-b pb-2 uppercase">Cuadre de Caja</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div>
+                <label class="block font-bold">Fecha:</label>
+                <input type="date" id="fecha" class="w-full border p-2 rounded">
+            </div>
+            <div>
+                <label class="block font-bold">Tasa del Día (Bs):</label>
+                <input type="number" id="tasa" value="0" step="0.01" oninput="calcular()" class="w-full border p-2 rounded bg-yellow-50 text-right font-bold text-blue-600">
+            </div>
+        </div>
+
+        <section class="mb-8">
+            <h2 class="bg-blue-600 text-white px-3 py-1 mb-2 font-bold uppercase">Ingresos</h2>
+            <div class="grid grid-cols-3 gap-4 font-semibold text-sm mb-2 border-b">
+                <span>Ventas del Día $</span>
+                <span>Ventas del Día Bs</span>
+                <span>Otros Ingresos $</span>
+            </div>
+            <div class="grid grid-cols-3 gap-4">
+                <input type="number" id="ventasDolares" value="0" oninput="calcular()" class="border p-2 rounded text-right">
+                <input type="number" id="ventasBolivares" value="0" oninput="calcular()" class="border p-2 rounded text-right bg-gray-50" readonly>
+                <input type="number" id="otrosIngresos" value="0" oninput="calcular()" class="border p-2 rounded text-right">
+            </div>
+            <div class="mt-4 p-2 bg-green-100 text-right rounded">
+                <span class="font-bold">TOTAL INGRESOS ($): </span>
+                <span id="totalIngresosUSD" class="text-xl font-bold">0.00</span>
+            </div>
+        </section>
+
+        <section class="mb-8">
+            <h2 class="bg-red-600 text-white px-3 py-1 mb-2 font-bold uppercase">Gastos y Cuentas por Cobrar</h2>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-bold">Total Gastos ($):</label>
+                    <input type="number" id="gastosUSD" value="0" oninput="calcular()" class="w-full border p-2 rounded text-right">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold">Cuentas por Cobrar ($):</label>
+                    <input type="number" id="ctasCobrar" value="0" oninput="calcular()" class="w-full border p-2 rounded text-right">
+                </div>
+            </div>
+        </section>
+
+        <section class="border-t-4 border-black pt-4">
+            <div class="flex justify-between items-center mb-4">
+                <span class="text-xl font-black uppercase">Saldo para Entregar:</span>
+                <span id="saldoFinal" class="text-3xl font-black text-green-700">$ 0.00</span>
+            </div>
+            
+            <div class="bg-yellow-200 p-4 rounded-lg">
+                <h3 class="font-bold mb-2">Desglose de Efectivo (Bolívares)</h3>
+                <div class="flex justify-between">
+                    <span>Efectivo en Bs (Caja):</span>
+                    <input type="number" id="efectivoBs" value="0" class="border p-1 rounded text-right font-bold w-32">
+                </div>
+            </div>
+        </section>
+
+        <div class="mt-8 flex gap-4">
+            <button onclick="window.print()" class="flex-1 bg-gray-800 text-white py-3 rounded-lg font-bold hover:bg-black transition">Imprimir Reporte</button>
+            <button onclick="resetear()" class="bg-red-100 text-red-700 px-6 py-3 rounded-lg font-bold hover:bg-red-200">Limpiar</button>
+        </div>
+    </div>
+
+    <script>
+        function calcular() {
+            const tasa = parseFloat(document.getElementById('tasa').value) || 0;
+            const ventasUSD = parseFloat(document.getElementById('ventasDolares').value) || 0;
+            const otros = parseFloat(document.getElementById('otrosIngresos').value) || 0;
+            const gastos = parseFloat(document.getElementById('gastosUSD').value) || 0;
+            const ctas = parseFloat(document.getElementById('ctasCobrar').value) || 0;
+
+            // Calcular Ventas en Bs automáticamente
+            const ventasBs = ventasUSD * tasa;
+            document.getElementById('ventasBolivares').value = ventasBs.toFixed(2);
+
+            // Total Ingresos
+            const totalIngresos = ventasUSD + otros;
+            document.getElementById('totalIngresosUSD').innerText = totalIngresos.toFixed(2);
+
+            // Saldo Final (Ingresos - Gastos - Cuentas por cobrar)
+            const saldo = totalIngresos - gastos - ctas;
+            document.getElementById('saldoFinal').innerText = `$ ${saldo.toFixed(2)}`;
+        }
+
+        function resetear() {
+            if(confirm('¿Estás seguro de limpiar todos los datos?')) {
+                location.reload();
+            }
+        }
+
+        // Poner fecha de hoy por defecto
+        document.getElementById('fecha').valueAsDate = new Date();
+    </script>
+</body>
+</html>
