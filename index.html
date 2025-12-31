@@ -3,178 +3,211 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cuadre de Caja - Moto Repuestos Jesús</title>
+    <title>Sistema de Ventas y Cuadre - Moto Repuestos Jesús</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+    </style>
 </head>
-<body class="bg-gray-200 p-4 font-sans text-sm">
-    <div class="max-w-6xl mx-auto bg-white p-6 shadow-2xl rounded-lg">
-        <h1 class="text-2xl font-bold text-center border-b-2 border-black mb-4 pb-2">CUADRE DE CAJA</h1>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            
-            <div class="space-y-6">
-                <div class="border border-gray-400 p-3">
-                    <h2 class="font-bold bg-gray-100 p-1 mb-2">RESUMEN DE VENTAS</h2>
-                    <div class="grid grid-cols-2 gap-2">
-                        <span>Ventas del día $:</span>
-                        <input type="number" id="ventasDia" value="0" oninput="calcular()" class="border text-right px-2 font-bold text-blue-600">
-                        <span>Tasa del día:</span>
-                        <input type="number" id="tasa" value="60.00" oninput="calcular()" class="border text-right px-2 bg-yellow-50">
-                        <span class="font-bold">Total Bs:</span>
-                        <div id="totalVentasBs" class="text-right font-bold">0,00</div>
-                    </div>
-                </div>
-
-                <div class="border border-gray-400">
-                    <table class="w-full">
-                        <thead><tr class="bg-gray-100 border-b border-gray-400"><th colspan="2" class="p-1">Otros Ingresos</th></tr></thead>
-                        <tbody id="tablaIngresos">
-                            </tbody>
-                    </table>
-                    <div class="p-2 flex gap-2">
-                        <input type="text" id="ingDesc" placeholder="Concepto" class="border w-full px-1">
-                        <input type="number" id="ingMonto" placeholder="Monto $" class="border w-24 px-1">
-                        <button onclick="agregarFila('ingresos')" class="bg-green-600 text-white px-2 rounded">+</button>
-                    </div>
-                </div>
-
-                <div class="border border-gray-400">
-                    <table class="w-full text-left">
-                        <thead><tr class="bg-red-100 border-b border-gray-400"><th colspan="2" class="p-1">Gastos / Egresos</th></tr></thead>
-                        <tbody id="tablaGastos">
-                            </tbody>
-                    </table>
-                    <div class="p-2 flex gap-2">
-                        <input type="text" id="gasDesc" placeholder="Descripción" class="border w-full px-1">
-                        <input type="number" id="gasMonto" placeholder="Monto $" class="border w-24 px-1">
-                        <button onclick="agregarFila('gastos')" class="bg-red-600 text-white px-2 rounded">+</button>
-                    </div>
-                </div>
-
-                <div class="bg-black text-white p-4 rounded text-lg font-bold">
-                    <div class="flex justify-between">
-                        <span>SALDO PARA ENTREGAR:</span>
-                        <span id="saldoFinal">$ 0.00</span>
-                    </div>
-                </div>
+<body class="bg-gray-100 p-2 sm:p-4 font-sans text-xs">
+    <div class="max-w-7xl mx-auto space-y-4">
+        
+        <div class="bg-white p-4 rounded shadow flex justify-between items-center border-l-4 border-blue-600">
+            <h1 class="text-lg font-bold">CUADRE DE CAJA DIARIO</h1>
+            <div class="flex items-center gap-2">
+                <span class="font-bold">TASA BS:</span>
+                <input type="number" id="tasa" value="60.00" oninput="calcularTodo()" class="border-2 border-blue-600 rounded p-1 w-24 text-right font-bold text-blue-600">
             </div>
+        </div>
 
-            <div class="border-2 border-black p-4 rounded bg-gray-50">
-                <h2 class="text-center font-bold text-lg mb-4 border-b border-black">EFECTIVO EN CAJA (Bs)</h2>
-                <table class="w-full border-collapse">
-                    <thead>
-                        <tr class="border-b border-black">
-                            <th class="text-left">Denominación</th>
-                            <th class="text-center">Cant.</th>
-                            <th class="text-right">Total Bs</th>
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+            
+            <div class="lg:col-span-3 bg-white p-4 rounded shadow overflow-x-auto">
+                <h2 class="font-bold mb-2 bg-gray-800 text-white p-1 text-center">VENTAS DIARIAS</h2>
+                <table class="w-full border-collapse border border-gray-300">
+                    <thead class="bg-gray-200">
+                        <tr>
+                            <th class="border p-1">FACTURA</th>
+                            <th class="border p-1">CLIENTES</th>
+                            <th class="border p-1">$</th>
+                            <th class="border p-1">Bs Efectivo</th>
+                            <th class="border p-1">Débito</th>
+                            <th class="border p-1">Pago Móvil</th>
+                            <th class="border p-1 text-blue-700">Total $</th>
+                            <th class="border p-1">Acción</th>
                         </tr>
                     </thead>
-                    <tbody class="text-lg">
-                        <tr class="border-b"><td>100</td><td><input type="number" class="cant border w-16 text-center" data-val="100" oninput="calcular()"></td><td class="text-right sub">0</td></tr>
-                        <tr class="border-b"><td>50</td><td><input type="number" class="cant border w-16 text-center" data-val="50" oninput="calcular()"></td><td class="text-right sub">0</td></tr>
-                        <tr class="border-b"><td>20</td><td><input type="number" class="cant border w-16 text-center" data-val="20" oninput="calcular()"></td><td class="text-right sub">0</td></tr>
-                        <tr class="border-b"><td>10</td><td><input type="number" class="cant border w-16 text-center" data-val="10" oninput="calcular()"></td><td class="text-right sub">0</td></tr>
-                        <tr class="border-b"><td>5</td><td><input type="number" class="cant border w-16 text-center" data-val="5" oninput="calcular()"></td><td class="text-right sub">0</td></tr>
-                        <tr class="border-b"><td>1</td><td><input type="number" class="cant border w-16 text-center" data-val="1" oninput="calcular()"></td><td class="text-right sub">0</td></tr>
+                    <tbody id="cuerpoFacturas">
+                        <tr class="bg-yellow-50">
+                            <td class="border p-1"><input type="text" id="inFac" class="w-full bg-transparent"></td>
+                            <td class="border p-1"><input type="text" id="inCli" class="w-full bg-transparent"></td>
+                            <td class="border p-1"><input type="number" id="inDol" class="w-full bg-transparent text-right"></td>
+                            <td class="border p-1"><input type="number" id="inBsE" class="w-full bg-transparent text-right"></td>
+                            <td class="border p-1"><input type="number" id="inDeb" class="w-full bg-transparent text-right"></td>
+                            <td class="border p-1"><input type="number" id="inPag" class="w-full bg-transparent text-right"></td>
+                            <td class="border p-1 bg-gray-100"></td>
+                            <td class="border p-1 text-center"><button onclick="agregarFactura()" class="bg-blue-600 text-white px-2 rounded font-bold hover:bg-blue-800">AÑADIR</button></td>
+                        </tr>
                     </tbody>
+                    <tfoot class="bg-gray-800 text-white font-bold text-sm">
+                        <tr>
+                            <td colspan="6" class="p-2 text-right">TOTAL VENTAS ($):</td>
+                            <td id="totalVentasFinal" class="p-2 text-right text-yellow-400">0.00</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
                 </table>
-                <div class="mt-4 p-2 bg-yellow-200 border-2 border-yellow-600">
-                    <div class="flex justify-between font-bold"><span>Total Efectivo:</span><span id="efectivoTotalBs">0</span></div>
-                    <div class="flex justify-between text-blue-800 font-bold border-t border-yellow-600 mt-2">
-                        <span>En Dólares:</span><span id="efectivoTotalUsd">$ 0.00</span>
+            </div>
+
+            <div class="bg-white p-4 rounded shadow border-t-4 border-green-600">
+                <h2 class="font-bold mb-4 text-center border-b">EFECTIVO EN CAJA (CANTIDADES)</h2>
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="w-16 font-bold text-gray-600">100 Bs:</span>
+                        <input type="number" class="cant-billete border rounded p-1 w-20 text-center bg-green-50" data-deno="100" oninput="calcularTodo()" placeholder="0">
+                        <span class="w-20 text-right sub-bs font-mono text-gray-400">0</span>
                     </div>
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="w-16 font-bold text-gray-600">50 Bs:</span>
+                        <input type="number" class="cant-billete border rounded p-1 w-20 text-center bg-green-50" data-deno="50" oninput="calcularTodo()" placeholder="0">
+                        <span class="w-20 text-right sub-bs font-mono text-gray-400">0</span>
+                    </div>
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="w-16 font-bold text-gray-600">20 Bs:</span>
+                        <input type="number" class="cant-billete border rounded p-1 w-20 text-center bg-green-50" data-deno="20" oninput="calcularTodo()" placeholder="0">
+                        <span class="w-20 text-right sub-bs font-mono text-gray-400">0</span>
+                    </div>
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="w-16 font-bold text-gray-600">10 Bs:</span>
+                        <input type="number" class="cant-billete border rounded p-1 w-20 text-center bg-green-50" data-deno="10" oninput="calcularTodo()" placeholder="0">
+                        <span class="w-20 text-right sub-bs font-mono text-gray-400">0</span>
+                    </div>
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="w-16 font-bold text-gray-600">5 Bs:</span>
+                        <input type="number" class="cant-billete border rounded p-1 w-20 text-center bg-green-50" data-deno="5" oninput="calcularTodo()" placeholder="0">
+                        <span class="w-20 text-right sub-bs font-mono text-gray-400">0</span>
+                    </div>
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="w-16 font-bold text-gray-600">1 Bs:</span>
+                        <input type="number" class="cant-billete border rounded p-1 w-20 text-center bg-green-50" data-deno="1" oninput="calcularTodo()" placeholder="0">
+                        <span class="w-20 text-right sub-bs font-mono text-gray-400">0</span>
+                    </div>
+
+                    <div class="mt-4 pt-4 border-t-2 border-black space-y-2">
+                        <div class="flex justify-between font-black text-sm">
+                            <span>TOTAL BS:</span>
+                            <span id="totalCajaBs">0.00</span>
+                        </div>
+                        <div class="flex justify-between font-black text-blue-700 text-sm">
+                            <span>TOTAL EN $:</span>
+                            <span id="totalCajaUsd">0.00</span>
+                        </div>
+                    </div>
+                    
+                    <div id="statusCaja" class="mt-4 p-2 rounded text-center font-bold text-sm">
+                        </div>
                 </div>
-                
-                <div id="resultado" class="mt-4 p-3 text-center font-bold text-xl rounded">
-                    </div>
             </div>
 
         </div>
     </div>
 
     <script>
-        let datos = JSON.parse(localStorage.getItem('cuadre_jesus')) || { ingresos: [], gastos: [] };
+        let facturas = JSON.parse(localStorage.getItem('ventas_jesus')) || [];
 
-        function agregarFila(tipo) {
-            const desc = document.getElementById(tipo === 'ingresos' ? 'ingDesc' : 'gasDesc').value;
-            const monto = parseFloat(document.getElementById(tipo === 'ingresos' ? 'ingMonto' : 'gasMonto').value);
-            if (!desc || isNaN(monto)) return;
-
-            datos[tipo].push({ desc, monto });
-            localStorage.setItem('cuadre_jesus', JSON.stringify(datos));
+        function agregarFactura() {
+            const f = {
+                fac: document.getElementById('inFac').value,
+                cli: document.getElementById('inCli').value,
+                dol: parseFloat(document.getElementById('inDol').value) || 0,
+                bse: parseFloat(document.getElementById('inBsE').value) || 0,
+                deb: parseFloat(document.getElementById('inDeb').value) || 0,
+                pag: parseFloat(document.getElementById('inPag').value) || 0
+            };
             
-            document.getElementById(tipo === 'ingresos' ? 'ingDesc' : 'gasDesc').value = "";
-            document.getElementById(tipo === 'ingresos' ? 'ingMonto' : 'gasMonto').value = "";
-            renderTablas();
+            if(!f.fac) return alert("Pon el número de factura");
+            
+            facturas.push(f);
+            localStorage.setItem('ventas_jesus', JSON.stringify(facturas));
+            limpiarInputs();
+            renderFacturas();
         }
 
-        function renderTablas() {
-            ['ingresos', 'gastos'].forEach(tipo => {
-                const tbody = document.getElementById(tipo === 'ingresos' ? 'tablaIngresos' : 'tablaGastos');
-                tbody.innerHTML = "";
-                datos[tipo].forEach((item, i) => {
-                    tbody.innerHTML += `<tr class="border-b">
-                        <td class="p-1">${item.desc}</td>
-                        <td class="p-1 text-right">$${item.monto.toFixed(2)} 
-                        <button onclick="eliminar('${tipo}', ${i})" class="text-red-500 ml-2">×</button></td>
-                    </tr>`;
-                });
-            });
-            calcular();
+        function limpiarInputs() {
+            ['inFac', 'inCli', 'inDol', 'inBsE', 'inDeb', 'inPag'].forEach(id => document.getElementById(id).value = "");
         }
 
-        function eliminar(tipo, i) {
-            datos[tipo].splice(i, 1);
-            localStorage.setItem('cuadre_jesus', JSON.stringify(datos));
-            renderTablas();
-        }
-
-        function calcular() {
+        function renderFacturas() {
+            const tabla = document.getElementById('cuerpoFacturas');
+            const filasManuales = tabla.rows[0].innerHTML;
+            tabla.innerHTML = `<tr class="bg-yellow-50">${filasManuales}</tr>`;
+            
+            let totalGeneral = 0;
             const tasa = parseFloat(document.getElementById('tasa').value) || 1;
-            const vDia = parseFloat(document.getElementById('ventasDia').value) || 0;
-            
-            // Ventas en Bs
-            document.getElementById('totalVentasBs').innerText = (vDia * tasa).toLocaleString('es-VE') + " Bs";
 
-            // Totales de tablas
-            const sumIng = datos.ingresos.reduce((a, b) => a + b.monto, 0);
-            const sumGas = datos.gastos.reduce((a, b) => a + b.monto, 0);
-            
-            const saldoEsperado = vDia + sumIng - sumGas;
-            document.getElementById('saldoFinal').innerText = `$ ${saldoEsperado.toFixed(2)}`;
-
-            // Billetes
-            let totalBs = 0;
-            const cants = document.querySelectorAll('.cant');
-            const subs = document.querySelectorAll('.sub');
-            
-            cants.forEach((input, i) => {
-                const sub = (parseFloat(input.value) || 0) * parseFloat(input.dataset.val);
-                subs[i].innerText = sub.toLocaleString('es-VE');
-                totalBs += sub;
+            facturas.forEach((f, i) => {
+                const totalF = f.dol + ((f.bse + f.deb + f.pag) / tasa);
+                totalGeneral += totalF;
+                
+                tabla.innerHTML += `
+                    <tr>
+                        <td class="border p-1 text-center">${f.fac}</td>
+                        <td class="border p-1">${f.cli}</td>
+                        <td class="border p-1 text-right font-bold">$${f.dol.toFixed(2)}</td>
+                        <td class="border p-1 text-right">${f.bse.toFixed(2)}</td>
+                        <td class="border p-1 text-right">${f.deb.toFixed(2)}</td>
+                        <td class="border p-1 text-right">${f.pag.toFixed(2)}</td>
+                        <td class="border p-1 text-right font-bold text-blue-700 bg-blue-50">$${totalF.toFixed(2)}</td>
+                        <td class="border p-1 text-center"><button onclick="eliminar(${i})" class="text-red-500 font-bold">✖</button></td>
+                    </tr>`;
             });
 
-            const totalUsdCaja = totalBs / tasa;
-            document.getElementById('efectivoTotalBs').innerText = totalBs.toLocaleString('es-VE') + " Bs";
-            document.getElementById('efectivoTotalUsd').innerText = `$ ${totalUsdCaja.toFixed(2)}`;
+            document.getElementById('totalVentasFinal').innerText = totalGeneral.toFixed(2);
+            calcularTodo();
+        }
 
-            // Comparación
-            const resDiv = document.getElementById('resultado');
-            const diff = totalUsdCaja - saldoEsperado;
+        function calcularTodo() {
+            const tasa = parseFloat(document.getElementById('tasa').value) || 1;
+            let sumaBs = 0;
+            
+            // Calcular billetes por cantidad
+            document.querySelectorAll('.cant-billete').forEach((input, i) => {
+                const cant = parseFloat(input.value) || 0;
+                const deno = parseFloat(input.dataset.deno);
+                const sub = cant * deno;
+                document.querySelectorAll('.sub-bs')[i].innerText = sub.toFixed(2);
+                sumaBs += sub;
+            });
+
+            const totalCajaUsd = sumaBs / tasa;
+            document.getElementById('totalCajaBs').innerText = sumaBs.toLocaleString('es-VE', {minimumFractionDigits: 2});
+            document.getElementById('totalCajaUsd').innerText = totalCajaUsd.toFixed(2);
+
+            // Comparación con ventas
+            const totalVentasUSD = parseFloat(document.getElementById('totalVentasFinal').innerText) || 0;
+            const diff = totalCajaUsd - totalVentasUSD;
+            const status = document.getElementById('statusCaja');
 
             if (Math.abs(diff) < 0.05) {
-                resDiv.innerText = "CAJA CUADRADA";
-                resDiv.className = "mt-4 p-3 text-center font-bold text-xl rounded bg-green-500 text-white";
+                status.innerText = "CAJA CUADRADA ✅";
+                status.className = "mt-4 p-2 rounded text-center font-bold text-sm bg-green-600 text-white";
             } else if (diff > 0) {
-                resDiv.innerText = "SOBRANTE: $" + diff.toFixed(2);
-                resDiv.className = "mt-4 p-3 text-center font-bold text-xl rounded bg-blue-500 text-white";
+                status.innerText = "SOBRANTE: $" + diff.toFixed(2);
+                status.className = "mt-4 p-2 rounded text-center font-bold text-sm bg-blue-600 text-white";
             } else {
-                resDiv.innerText = "FALTANTE: $" + Math.abs(diff).toFixed(2);
-                resDiv.className = "mt-4 p-3 text-center font-bold text-xl rounded bg-red-500 text-white";
+                status.innerText = "FALTANTE: $" + Math.abs(diff).toFixed(2);
+                status.className = "mt-4 p-2 rounded text-center font-bold text-sm bg-red-600 text-white";
             }
         }
 
-        renderTablas();
+        function eliminar(i) {
+            facturas.splice(i, 1);
+            localStorage.setItem('ventas_jesus', JSON.stringify(facturas));
+            renderFacturas();
+        }
+
+        renderFacturas();
     </script>
 </body>
 </html>
