@@ -3,168 +3,178 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Cuadre - Moto Repuestos Jesús</title>
+    <title>Cuadre de Caja - Moto Repuestos Jesús</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-100 p-4">
-    <div class="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        <div class="lg:col-span-2 space-y-6">
-            <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-blue-600">
-                <h2 class="text-xl font-bold mb-4 flex items-center">📝 Registro de Factura</h2>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <input type="text" id="facNum" placeholder="N° Factura" class="border p-2 rounded">
-                    <input type="text" id="facCliente" placeholder="Cliente" class="border p-2 rounded">
-                    <input type="number" id="facMonto" placeholder="Monto $" class="border p-2 rounded">
-                    <button onclick="guardarFactura()" class="bg-blue-600 text-white font-bold rounded hover:bg-blue-700 transition">Añadir +</button>
-                </div>
-            </div>
+<body class="bg-gray-200 p-4 font-sans text-sm">
+    <div class="max-w-6xl mx-auto bg-white p-6 shadow-2xl rounded-lg">
+        <h1 class="text-2xl font-bold text-center border-b-2 border-black mb-4 pb-2">CUADRE DE CAJA</h1>
 
-            <div class="bg-white p-6 rounded-xl shadow-md">
-                <h2 class="text-xl font-bold mb-4">📊 Historial de Ventas (Base de Datos Local)</h2>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-gray-100">
-                                <th class="p-2 border">Fac #</th>
-                                <th class="p-2 border">Cliente</th>
-                                <th class="p-2 border text-right">Monto $</th>
-                                <th class="p-2 border text-center">Acción</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tablaFacturas"></tbody>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            
+            <div class="space-y-6">
+                <div class="border border-gray-400 p-3">
+                    <h2 class="font-bold bg-gray-100 p-1 mb-2">RESUMEN DE VENTAS</h2>
+                    <div class="grid grid-cols-2 gap-2">
+                        <span>Ventas del día $:</span>
+                        <input type="number" id="ventasDia" value="0" oninput="calcular()" class="border text-right px-2 font-bold text-blue-600">
+                        <span>Tasa del día:</span>
+                        <input type="number" id="tasa" value="60.00" oninput="calcular()" class="border text-right px-2 bg-yellow-50">
+                        <span class="font-bold">Total Bs:</span>
+                        <div id="totalVentasBs" class="text-right font-bold">0,00</div>
+                    </div>
+                </div>
+
+                <div class="border border-gray-400">
+                    <table class="w-full">
+                        <thead><tr class="bg-gray-100 border-b border-gray-400"><th colspan="2" class="p-1">Otros Ingresos</th></tr></thead>
+                        <tbody id="tablaIngresos">
+                            </tbody>
                     </table>
+                    <div class="p-2 flex gap-2">
+                        <input type="text" id="ingDesc" placeholder="Concepto" class="border w-full px-1">
+                        <input type="number" id="ingMonto" placeholder="Monto $" class="border w-24 px-1">
+                        <button onclick="agregarFila('ingresos')" class="bg-green-600 text-white px-2 rounded">+</button>
+                    </div>
                 </div>
-                <div class="mt-4 text-right font-bold text-lg">
-                    Total Ventas: $<span id="totalVentas">0.00</span>
+
+                <div class="border border-gray-400">
+                    <table class="w-full text-left">
+                        <thead><tr class="bg-red-100 border-b border-gray-400"><th colspan="2" class="p-1">Gastos / Egresos</th></tr></thead>
+                        <tbody id="tablaGastos">
+                            </tbody>
+                    </table>
+                    <div class="p-2 flex gap-2">
+                        <input type="text" id="gasDesc" placeholder="Descripción" class="border w-full px-1">
+                        <input type="number" id="gasMonto" placeholder="Monto $" class="border w-24 px-1">
+                        <button onclick="agregarFila('gastos')" class="bg-red-600 text-white px-2 rounded">+</button>
+                    </div>
+                </div>
+
+                <div class="bg-black text-white p-4 rounded text-lg font-bold">
+                    <div class="flex justify-between">
+                        <span>SALDO PARA ENTREGAR:</span>
+                        <span id="saldoFinal">$ 0.00</span>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="space-y-6">
-            <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-green-600">
-                <h2 class="text-xl font-bold mb-4">💵 Conteo de Caja</h2>
-                <div class="mb-4">
-                    <label class="block text-sm font-bold">Tasa del Día:</label>
-                    <input type="number" id="tasa" value="60.00" oninput="calcularTodo()" class="w-full border p-2 rounded bg-yellow-50 font-bold text-blue-700">
+            <div class="border-2 border-black p-4 rounded bg-gray-50">
+                <h2 class="text-center font-bold text-lg mb-4 border-b border-black">EFECTIVO EN CAJA (Bs)</h2>
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="border-b border-black">
+                            <th class="text-left">Denominación</th>
+                            <th class="text-center">Cant.</th>
+                            <th class="text-right">Total Bs</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-lg">
+                        <tr class="border-b"><td>100</td><td><input type="number" class="cant border w-16 text-center" data-val="100" oninput="calcular()"></td><td class="text-right sub">0</td></tr>
+                        <tr class="border-b"><td>50</td><td><input type="number" class="cant border w-16 text-center" data-val="50" oninput="calcular()"></td><td class="text-right sub">0</td></tr>
+                        <tr class="border-b"><td>20</td><td><input type="number" class="cant border w-16 text-center" data-val="20" oninput="calcular()"></td><td class="text-right sub">0</td></tr>
+                        <tr class="border-b"><td>10</td><td><input type="number" class="cant border w-16 text-center" data-val="10" oninput="calcular()"></td><td class="text-right sub">0</td></tr>
+                        <tr class="border-b"><td>5</td><td><input type="number" class="cant border w-16 text-center" data-val="5" oninput="calcular()"></td><td class="text-right sub">0</td></tr>
+                        <tr class="border-b"><td>1</td><td><input type="number" class="cant border w-16 text-center" data-val="1" oninput="calcular()"></td><td class="text-right sub">0</td></tr>
+                    </tbody>
+                </table>
+                <div class="mt-4 p-2 bg-yellow-200 border-2 border-yellow-600">
+                    <div class="flex justify-between font-bold"><span>Total Efectivo:</span><span id="efectivoTotalBs">0</span></div>
+                    <div class="flex justify-between text-blue-800 font-bold border-t border-yellow-600 mt-2">
+                        <span>En Dólares:</span><span id="efectivoTotalUsd">$ 0.00</span>
+                    </div>
                 </div>
                 
-                <div class="space-y-2">
-                    <p class="text-xs font-bold text-gray-500 uppercase">Desglose de Billetes (Bs)</p>
-                    <div class="grid grid-cols-2 gap-2 items-center">
-                        <span>100 Bs:</span> <input type="number" class="billete border p-1 rounded text-right" data-valor="100" oninput="calcularTodo()">
-                        <span>50 Bs:</span> <input type="number" class="billete border p-1 rounded text-right" data-valor="50" oninput="calcularTodo()">
-                        <span>20 Bs:</span> <input type="number" class="billete border p-1 rounded text-right" data-valor="20" oninput="calcularTodo()">
-                        <span>10 Bs:</span> <input type="number" class="billete border p-1 rounded text-right" data-valor="10" oninput="calcularTodo()">
-                        <span>5 Bs:</span> <input type="number" class="billete border p-1 rounded text-right" data-valor="5" oninput="calcularTodo()">
+                <div id="resultado" class="mt-4 p-3 text-center font-bold text-xl rounded">
                     </div>
-                </div>
-
-                <div class="mt-6 pt-4 border-t space-y-3">
-                    <div class="flex justify-between font-bold">
-                        <span>Total en Bs:</span>
-                        <span id="totalBs">0.00</span>
-                    </div>
-                    <div class="flex justify-between text-blue-600 font-bold">
-                        <span>Equiv. a Tasa ($):</span>
-                        <span id="totalEquivDolar">0.00</span>
-                    </div>
-                    <div id="statusCaja" class="p-2 rounded text-center font-bold text-sm">
-                        </div>
-                </div>
-                <button onclick="limpiarTodo()" class="w-full mt-4 text-xs text-red-500 underline">Borrar base de datos</button>
             </div>
+
         </div>
     </div>
 
     <script>
-        let facturas = JSON.parse(localStorage.getItem('facturas')) || [];
+        let datos = JSON.parse(localStorage.getItem('cuadre_jesus')) || { ingresos: [], gastos: [] };
 
-        function guardarFactura() {
-            const num = document.getElementById('facNum').value;
-            const cliente = document.getElementById('facCliente').value;
-            const monto = parseFloat(document.getElementById('facMonto').value);
+        function agregarFila(tipo) {
+            const desc = document.getElementById(tipo === 'ingresos' ? 'ingDesc' : 'gasDesc').value;
+            const monto = parseFloat(document.getElementById(tipo === 'ingresos' ? 'ingMonto' : 'gasMonto').value);
+            if (!desc || isNaN(monto)) return;
 
-            if (!num || !monto) return alert("Llena los datos");
-
-            facturas.push({ num, cliente, monto });
-            localStorage.setItem('facturas', JSON.stringify(facturas));
+            datos[tipo].push({ desc, monto });
+            localStorage.setItem('cuadre_jesus', JSON.stringify(datos));
             
-            document.getElementById('facNum').value = "";
-            document.getElementById('facCliente').value = "";
-            document.getElementById('facMonto').value = "";
-            
-            renderizar();
+            document.getElementById(tipo === 'ingresos' ? 'ingDesc' : 'gasDesc').value = "";
+            document.getElementById(tipo === 'ingresos' ? 'ingMonto' : 'gasMonto').value = "";
+            renderTablas();
         }
 
-        function renderizar() {
-            const tabla = document.getElementById('tablaFacturas');
-            tabla.innerHTML = "";
-            let total = 0;
-
-            facturas.forEach((f, index) => {
-                total += f.monto;
-                tabla.innerHTML += `
-                    <tr>
-                        <td class="p-2 border">${f.num}</td>
-                        <td class="p-2 border">${f.cliente}</td>
-                        <td class="p-2 border text-right font-bold">$${f.monto.toFixed(2)}</td>
-                        <td class="p-2 border text-center">
-                            <button onclick="eliminar(${index})" class="text-red-500">✖</button>
-                        </td>
+        function renderTablas() {
+            ['ingresos', 'gastos'].forEach(tipo => {
+                const tbody = document.getElementById(tipo === 'ingresos' ? 'tablaIngresos' : 'tablaGastos');
+                tbody.innerHTML = "";
+                datos[tipo].forEach((item, i) => {
+                    tbody.innerHTML += `<tr class="border-b">
+                        <td class="p-1">${item.desc}</td>
+                        <td class="p-1 text-right">$${item.monto.toFixed(2)} 
+                        <button onclick="eliminar('${tipo}', ${i})" class="text-red-500 ml-2">×</button></td>
                     </tr>`;
+                });
             });
-
-            document.getElementById('totalVentas').innerText = total.toFixed(2);
-            calcularTodo();
+            calcular();
         }
 
-        function calcularTodo() {
+        function eliminar(tipo, i) {
+            datos[tipo].splice(i, 1);
+            localStorage.setItem('cuadre_jesus', JSON.stringify(datos));
+            renderTablas();
+        }
+
+        function calcular() {
             const tasa = parseFloat(document.getElementById('tasa').value) || 1;
-            const totalVentasUSD = parseFloat(document.getElementById('totalVentas').innerText);
+            const vDia = parseFloat(document.getElementById('ventasDia').value) || 0;
             
-            // Calcular billetes
-            let sumaBs = 0;
-            document.querySelectorAll('.billete').forEach(input => {
-                const cantidad = parseFloat(input.value) || 0;
-                const valorBillete = parseFloat(input.dataset.valor);
-                sumaBs += cantidad * valorBillete;
+            // Ventas en Bs
+            document.getElementById('totalVentasBs').innerText = (vDia * tasa).toLocaleString('es-VE') + " Bs";
+
+            // Totales de tablas
+            const sumIng = datos.ingresos.reduce((a, b) => a + b.monto, 0);
+            const sumGas = datos.gastos.reduce((a, b) => a + b.monto, 0);
+            
+            const saldoEsperado = vDia + sumIng - sumGas;
+            document.getElementById('saldoFinal').innerText = `$ ${saldoEsperado.toFixed(2)}`;
+
+            // Billetes
+            let totalBs = 0;
+            const cants = document.querySelectorAll('.cant');
+            const subs = document.querySelectorAll('.sub');
+            
+            cants.forEach((input, i) => {
+                const sub = (parseFloat(input.value) || 0) * parseFloat(input.dataset.val);
+                subs[i].innerText = sub.toLocaleString('es-VE');
+                totalBs += sub;
             });
 
-            const totalEquivDolar = sumaBs / tasa;
-            const diferencia = totalEquivDolar - totalVentasUSD;
+            const totalUsdCaja = totalBs / tasa;
+            document.getElementById('efectivoTotalBs').innerText = totalBs.toLocaleString('es-VE') + " Bs";
+            document.getElementById('efectivoTotalUsd').innerText = `$ ${totalUsdCaja.toFixed(2)}`;
 
-            document.getElementById('totalBs').innerText = sumaBs.toLocaleString('es-VE') + " Bs";
-            document.getElementById('totalEquivDolar').innerText = totalEquivDolar.toFixed(2);
+            // Comparación
+            const resDiv = document.getElementById('resultado');
+            const diff = totalUsdCaja - saldoEsperado;
 
-            const statusDiv = document.getElementById('statusCaja');
-            if (Math.abs(diferencia) < 0.01) {
-                statusDiv.innerText = "CAJA CUADRADA ✅";
-                statusDiv.className = "p-2 rounded text-center font-bold text-sm bg-green-100 text-green-700";
-            } else if (diferencia > 0) {
-                statusDiv.innerText = "SOBRANTE: $" + diferencia.toFixed(2);
-                statusDiv.className = "p-2 rounded text-center font-bold text-sm bg-blue-100 text-blue-700";
+            if (Math.abs(diff) < 0.05) {
+                resDiv.innerText = "CAJA CUADRADA";
+                resDiv.className = "mt-4 p-3 text-center font-bold text-xl rounded bg-green-500 text-white";
+            } else if (diff > 0) {
+                resDiv.innerText = "SOBRANTE: $" + diff.toFixed(2);
+                resDiv.className = "mt-4 p-3 text-center font-bold text-xl rounded bg-blue-500 text-white";
             } else {
-                statusDiv.innerText = "FALTANTE: $" + Math.abs(diferencia).toFixed(2);
-                statusDiv.className = "p-2 rounded text-center font-bold text-sm bg-red-100 text-red-700";
+                resDiv.innerText = "FALTANTE: $" + Math.abs(diff).toFixed(2);
+                resDiv.className = "mt-4 p-3 text-center font-bold text-xl rounded bg-red-500 text-white";
             }
         }
 
-        function eliminar(index) {
-            facturas.splice(index, 1);
-            localStorage.setItem('facturas', JSON.stringify(facturas));
-            renderizar();
-        }
-
-        function limpiarTodo() {
-            if(confirm("¿Borrar todas las facturas guardadas?")) {
-                localStorage.clear();
-                location.reload();
-            }
-        }
-
-        renderizar(); // Cargar datos al abrir
+        renderTablas();
     </script>
 </body>
 </html>
-
