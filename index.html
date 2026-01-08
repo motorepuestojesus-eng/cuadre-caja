@@ -2,227 +2,244 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Control de Caja - Moto Repuestos Jesús</title>
+    <title>Moto Repuestos Jesús - Control Total Editable</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: 'Arial', sans-serif; background-color: #f3f4f6; }
-        .table-excel { width: 100%; border-collapse: collapse; background: white; margin-bottom: 20px; }
-        .table-excel th, .table-excel td { border: 1px solid #000; padding: 2px 4px; font-size: 11px; text-align: center; }
-        .table-excel th { background: #f2f2f2; font-weight: bold; }
-        .input-cell { width: 100%; border: none; text-align: center; outline: none; background: transparent; }
-        .input-cell:focus { background: #fff9c4; }
-        .bg-total { background: #e5e7eb !important; font-weight: bold; }
-        .tab-active { background: #000 !important; color: #fff !important; }
+        body { font-family: 'Arial', sans-serif; background-color: #f0f2f5; }
+        .table-excel { width: 100%; border-collapse: collapse; background: white; border: 1px solid #000; }
+        .table-excel th, .table-excel td { border: 1px solid #000; padding: 4px; font-size: 11px; text-align: center; }
+        .table-excel th { background: #e5e7eb; font-weight: bold; }
+        input { width: 100%; border: none; text-align: center; outline: none; background: transparent; font-size: 11px; }
+        input:focus { background: #fff9c4; border-radius: 2px; }
+        .tab-btn { padding: 8px 16px; font-weight: bold; border: 1px solid #000; cursor: pointer; text-transform: uppercase; font-size: 12px; }
+        .active-tab { background: #000; color: #fff; }
+        .bg-acum { background: #f9fafb; font-weight: bold; }
     </style>
 </head>
 <body class="p-4">
 
-    <div class="max-w-[1100px] mx-auto bg-white p-5 shadow-lg border border-gray-400">
-        <div class="flex justify-between items-center mb-4 border-b-2 border-black pb-2">
-            <div>
-                <h1 class="text-xl font-black italic uppercase">Ventas Diarias</h1>
-                <div class="flex gap-2 mt-1">
-                    <span class="font-bold">Fecha:</span>
-                    <input type="text" id="fechaCaja" class="border border-black px-2 w-24" value="1-dic">
-                </div>
-            </div>
-            <div class="flex items-center gap-2 border-2 border-black p-2 bg-yellow-50">
-                <span class="font-bold">Tasa:</span>
-                <input type="number" id="tasa" step="0.01" value="247.30" class="w-20 font-black text-center" onchange="render()">
-            </div>
-        </div>
-
-        <div class="flex gap-1 mb-6">
-            <button onclick="switchTab('diario')" id="tab-diario" class="px-6 py-2 border border-black font-bold text-xs tab-active">VENTA Y CUADRE</button>
-            <button onclick="switchTab('consolidado')" id="tab-consolidado" class="px-6 py-2 border border-black font-bold text-xs bg-gray-100">CONSOLIDADO MENSUAL</button>
-            <button onclick="guardarDia()" class="ml-auto bg-green-700 text-white px-8 py-2 font-bold border border-black text-xs uppercase">Guardar y Siguiente Día</button>
+    <div class="max-w-[1250px] mx-auto bg-white p-6 shadow-2xl border border-gray-400">
+        
+        <div class="flex gap-2 mb-4">
+            <button onclick="cambiarPestana('diario')" id="btn-diario" class="tab-btn active-tab">Caja del Día</button>
+            <button onclick="cambiarPestana('consolidado')" id="btn-consolidado" class="tab-btn bg-gray-200">Consolidado Mensual (Editable)</button>
+            <button onclick="guardarCierre()" class="ml-auto bg-blue-600 text-white px-6 py-2 font-bold border border-black hover:bg-blue-700 text-xs uppercase">Registrar día en historial</button>
         </div>
 
         <div id="view-diario">
-            <table class="table-excel">
+            <div class="flex justify-between items-center mb-4 border-b-2 border-black pb-2">
+                <h1 class="text-xl font-black italic uppercase">Registro de Ventas Diarias</h1>
+                <div class="flex gap-4">
+                    <div class="flex items-center gap-2"><b>Fecha:</b><input type="text" id="fechaAct" class="border border-black w-24 bg-white" value="1-dic"></div>
+                    <div class="flex items-center gap-2 border-2 border-black p-1 bg-yellow-50"><b>Tasa:</b><input type="number" id="tasa" step="0.01" value="247.30" class="w-20 font-bold" onchange="calcularTodo()"></div>
+                </div>
+            </div>
+
+            <table class="table-excel mb-6">
                 <thead>
                     <tr>
-                        <th>FACTURA</th><th>Nro Clientes</th><th>$</th><th>Bs Efectivo</th><th>Debito</th><th>Pago Movil</th><th>Total Bs x fact</th><th>Bs a $</th><th>Total $</th>
+                        <th>FACTURA</th><th>Nro Clientes</th><th>$ (Divisa)</th><th>Bs Efectivo</th><th>Debito</th><th>Pago Movil</th><th>Total Bs x fact</th><th>Bs a $</th><th>Total $</th>
                     </tr>
                 </thead>
                 <tbody id="cuerpoVentas"></tbody>
-                <tfoot id="pieVentas" class="bg-total"></tfoot>
+                <tfoot id="pieVentas" class="bg-gray-100 font-bold"></tfoot>
             </table>
 
-            <div class="grid grid-cols-12 gap-4">
-                <div class="col-span-8 border border-black p-2 bg-gray-50">
-                    <h3 class="text-center font-bold bg-gray-200 border-b border-black mb-2 uppercase text-xs">Cuadre de Caja</h3>
-                    <div class="grid grid-cols-2 gap-4">
-                        <table class="table-excel mb-0">
-                            <tr><td class="text-left">Ventas del día $</td><td id="resVentaUsd" class="font-bold">0,00</td></tr>
-                            <tr><td class="text-left">Ventas del día Bs</td><td id="resVentaBs" class="font-bold">0,00</td></tr>
-                        </table>
-                        <div id="statusCuadre" class="flex items-center justify-center border-2 border-black font-black text-xl italic uppercase bg-white">
-                            CARGANDO...
-                        </div>
-                    </div>
-                    
-                    <div class="mt-4 border-t border-black pt-2">
-                        <h4 class="font-bold text-[10px] uppercase mb-1">Detalle Gastos Bs</h4>
-                        <table class="table-excel">
-                            <tbody id="cuerpoGastos">
-                                <tr><td>Efectivo de caja</td><td><input type="number" id="efe_caja" class="input-cell" onchange="render()"></td></tr>
-                                <tr><td><input type="text" class="input-cell text-left" placeholder="Descripción..."></td><td><input type="number" class="input-cell gasto-v" onchange="render()"></td></tr>
-                                <tr><td><input type="text" class="input-cell text-left" placeholder="Descripción..."></td><td><input type="number" class="input-cell gasto-v" onchange="render()"></td></tr>
-                            </tbody>
-                        </table>
-                        <div class="grid grid-cols-2 gap-4 text-[11px] font-bold">
-                            <div class="space-y-1">
-                                <div class="flex justify-between"><span>Total Gastos en Bs:</span><span id="gasTotalBs">0,00</span></div>
-                                <div class="flex justify-between border-t border-black"><span>Efectivo menos gastos:</span><span id="efeNetoBs">0,00</span></div>
-                            </div>
-                            <div class="flex items-end justify-end">
-                                <span class="text-blue-700">Total entre tasa: <span id="efeNetoUsd">0,00</span></span>
-                            </div>
-                        </div>
-                    </div>
+            <div class="grid grid-cols-3 gap-6">
+                <div class="border border-black p-2 bg-white">
+                    <h3 class="bg-yellow-300 text-center font-bold border-b border-black mb-2 text-[10px] uppercase">Gastos en Bolívares</h3>
+                    <table class="w-full text-[11px]">
+                        <tr><td>Efectivo de caja</td><td><input type="number" id="g_efe_caja" class="border-b" onchange="calcularTodo()"></td></tr>
+                        <tr><td><input type="text" placeholder="Gasto 1..."></td><td><input type="number" class="gasto-input" onchange="calcularTodo()"></td></tr>
+                        <tr><td><input type="text" placeholder="Gasto 2..."></td><td><input type="number" class="gasto-input" onchange="calcularTodo()"></td></tr>
+                        <tr class="font-bold border-t border-black"><td>Total Gastos Bs</td><td id="resTotalGastos">0,00</td></tr>
+                    </table>
                 </div>
 
-                <div class="col-span-4 border-2 border-black p-2 bg-white">
-                    <h3 class="text-center font-bold border-b border-black mb-2 uppercase text-xs">Conteo de Billetes</h3>
-                    <div id="billetesLista" class="space-y-1"></div>
-                    <div class="mt-4 border-t-2 border-black pt-2 font-black text-center text-lg">
-                        FÍSICO: <span id="totalMano" class="text-green-700">0,00</span>
+                <div class="border-2 border-black p-4 flex flex-col items-center justify-center bg-gray-50">
+                    <span class="text-[10px] font-bold uppercase mb-2">Diferencia de Caja</span>
+                    <div id="txtStatus" class="text-xl font-black italic uppercase">Calculando...</div>
+                    <div id="valStatus" class="text-3xl font-black mt-1">0.00</div>
+                </div>
+
+                <div class="border border-black p-2 bg-white">
+                    <h3 class="bg-gray-800 text-white text-center font-bold border-b border-black mb-2 text-[10px] uppercase">Conteo de Billetes ($)</h3>
+                    <div id="listaBilletes" class="space-y-1"></div>
+                    <div class="mt-4 pt-2 border-t-2 border-black font-black flex justify-between text-lg">
+                        <span>EN MANO:</span><span id="resFisico">0,00</span>
                     </div>
                 </div>
             </div>
         </div>
 
         <div id="view-consolidado" class="hidden">
-            <div class="grid grid-cols-2 gap-4 mb-4">
-                <table class="table-excel text-left">
-                    <tr><td class="font-bold p-2 bg-gray-50 uppercase">Venta Total en $</td><td id="conTotalUsd" class="font-black text-lg">0,00</td></tr>
-                    <tr><td class="font-bold p-2 bg-gray-50 uppercase">Tasa Promedio Mensual</td><td id="conTasaAvg">0,00</td></tr>
+            <h2 class="text-lg font-black uppercase mb-4 border-b-2 border-black">Historial de Cierres (Puedes editar cualquier celda)</h2>
+            
+            <div class="mb-6 w-full max-w-md">
+                <table class="table-excel shadow-sm">
+                    <tr><td class="bg-gray-100 font-bold text-left p-2 uppercase">Venta Total Mes ($)</td><td id="resumVtaUsd" class="font-black text-right text-lg text-blue-800">0,00</td></tr>
+                    <tr><td class="bg-gray-100 font-bold text-left p-2 uppercase">Venta Total Mes (Bs)</td><td id="resumVtaBs" class="text-right font-bold">0,00</td></tr>
+                    <tr><td class="bg-gray-100 font-bold text-left p-2 uppercase">Nro de Clientes</td><td id="resumCli" class="text-right">0,00</td></tr>
+                    <tr><td class="bg-blue-50 font-bold text-left p-2 italic uppercase">Promedio Diario Real ($)</td><td id="resumProm" class="font-black text-right text-green-700">0,00</td></tr>
                 </table>
             </div>
+
             <table class="table-excel">
                 <thead>
                     <tr>
-                        <th>Días</th><th>Fecha</th><th>Tasa</th><th>Clientes</th><th>Total $</th><th>Acum $</th><th>Acum Bs</th>
+                        <th rowspan="2">Día</th>
+                        <th rowspan="2">Fecha</th>
+                        <th rowspan="2">Tasa</th>
+                        <th rowspan="2">Clientes</th>
+                        <th rowspan="2">Efectivo $</th>
+                        <th colspan="5" class="bg-gray-200 uppercase">Resumen de Venta Diaria</th>
+                    </tr>
+                    <tr>
+                        <th>Vta Total $</th>
+                        <th class="bg-acum">Acum $</th>
+                        <th>Tasa Prom.</th>
+                        <th>Vta Bs</th>
+                        <th class="bg-acum">Acum Bs</th>
                     </tr>
                 </thead>
                 <tbody id="cuerpoHistorial"></tbody>
             </table>
+            <p class="text-[10px] text-gray-500 mt-2 italic">* Los campos "Acumulado" y "Promedio" se calculan solos al editar la Tasa, Clientes o Montos.</p>
         </div>
     </div>
 
     <script>
-        // Memoria y Datos (Basado en Excel 3a6771 y 3ad8e5)
-        let app = JSON.parse(localStorage.getItem('moto_db_final')) || {
-            caja: {
-                ventas: Array(15).fill().map(() => ({fact:'', cli:0, usd:0, bsE:0, deb:0, pm:0})),
+        // Cargar datos
+        let db = JSON.parse(localStorage.getItem('moto_jesus_v6')) || {
+            diario: {
+                ventas: Array(12).fill().map(() => ({fact:'', cli:0, usd:0, bsE:0, deb:0, pm:0})),
                 billetes: {100:0, 50:0, 20:0, 10:0, 5:0, 2:0, 1:0}
             },
             historial: []
         };
 
-        function render() {
-            const c = app.caja;
+        function calcularTodo() {
             const tasa = parseFloat(document.getElementById('tasa').value) || 1;
             const cv = document.getElementById('cuerpoVentas'); cv.innerHTML = "";
-            let tCli=0, tUsd=0, tBsE=0, tDeb=0, tPm=0, tBsFact=0, tBsUsd=0, tTotalUsd=0;
+            let tCli=0, tUsd=0, tBs=0, tFinalUsd=0, tBsE=0;
 
-            // Procesar Ventas
-            c.ventas.forEach((v, i) => {
-                const totalBs = (v.bsE||0) + (v.deb||0) + (v.pm||0);
-                const convUsd = totalBs / tasa;
-                const finalF = (v.usd||0) + convUsd;
-                tCli+=(v.cli||0); tUsd+=(v.usd||0); tBsE+=(v.bsE||0); tDeb+=(v.deb||0); tPm+=(v.pm||0);
-                tBsFact+=totalBs; tBsUsd+=convUsd; tTotalUsd+=finalF;
+            db.diario.ventas.forEach((v, i) => {
+                const filaBs = (v.bsE||0) + (v.deb||0) + (v.pm||0);
+                const convUsd = filaBs / tasa;
+                const totalF = (v.usd||0) + convUsd;
+                tCli+=(v.cli||0); tUsd+=(v.usd||0); tBs+=filaBs; tFinalUsd+=totalF; tBsE+=(v.bsE||0);
 
                 cv.innerHTML += `<tr>
-                    <td><input value="${v.fact}" class="input-cell" onchange="updV(${i},'fact',this.value)"></td>
-                    <td><input type="number" value="${v.cli||''}" class="input-cell" onchange="updV(${i},'cli',parseFloat(this.value))"></td>
-                    <td><input type="number" value="${v.usd||''}" class="input-cell" onchange="updV(${i},'usd',parseFloat(this.value))"></td>
-                    <td><input type="number" value="${v.bsE||''}" class="input-cell" onchange="updV(${i},'bsE',parseFloat(this.value))"></td>
-                    <td><input type="number" value="${v.deb||''}" class="input-cell" onchange="updV(${i},'deb',parseFloat(this.value))"></td>
-                    <td><input type="number" value="${v.pm||''}" class="input-cell" onchange="updV(${i},'pm',parseFloat(this.value))"></td>
-                    <td>${totalBs.toFixed(2)}</td><td>${convUsd.toFixed(2)}</td><td class="font-bold">${finalF.toFixed(2)}</td>
+                    <td><input value="${v.fact}" onchange="updV(${i},'fact',this.value)"></td>
+                    <td><input type="number" value="${v.cli||''}" onchange="updV(${i},'cli',parseFloat(this.value))"></td>
+                    <td><input type="number" value="${v.usd||''}" onchange="updV(${i},'usd',parseFloat(this.value))"></td>
+                    <td><input type="number" value="${v.bsE||''}" onchange="updV(${i},'bsE',parseFloat(this.value))"></td>
+                    <td><input type="number" value="${v.deb||''}" onchange="updV(${i},'deb',parseFloat(this.value))"></td>
+                    <td><input type="number" value="${v.pm||''}" onchange="updV(${i},'pm',parseFloat(this.value))"></td>
+                    <td class="bg-gray-50">${filaBs.toFixed(2)}</td>
+                    <td class="bg-gray-50">${convUsd.toFixed(2)}</td>
+                    <td class="font-bold bg-yellow-50">${totalF.toFixed(2)}</td>
                 </tr>`;
             });
-            document.getElementById('pieVentas').innerHTML = `<tr><td>TOTAL</td><td>${tCli}</td><td>${tUsd.toFixed(2)}</td><td>${tBsE.toFixed(2)}</td><td>${tDeb.toFixed(2)}</td><td>${tPm.toFixed(2)}</td><td>${tBsFact.toFixed(2)}</td><td>${tBsUsd.toFixed(2)}</td><td>${tTotalUsd.toFixed(2)}</td></tr>`;
+            document.getElementById('pieVentas').innerHTML = `<tr><td>TOTAL</td><td>${tCli}</td><td>${tUsd.toFixed(2)}</td><td>${tBsE.toFixed(2)}</td><td colspan="2"></td><td>${tBs.toFixed(2)}</td><td></td><td>${tFinalUsd.toFixed(2)}</td></tr>`;
 
-            // Gastos Bs
-            let gasV = 0;
-            document.querySelectorAll('.gasto-v').forEach(i => gasV += (parseFloat(i.value)||0));
-            const efeCaja = parseFloat(document.getElementById('efe_caja').value) || 0;
-            const totalG = efeCaja + gasV;
-            const netoBs = tBsE - totalG;
-            document.getElementById('gasTotalBs').innerText = totalG.toFixed(2);
-            document.getElementById('efeNetoBs').innerText = netoBs.toFixed(2);
-            document.getElementById('efeNetoUsd').innerText = (netoBs / tasa).toFixed(2);
-
-            // Billetes
-            let mano = 0;
-            const bl = document.getElementById('billetesLista'); bl.innerHTML = "";
+            // Gastos y Billetes (Igual que versión anterior para mantener consistencia)
+            let gInputs = 0; document.querySelectorAll('.gasto-input').forEach(i => gInputs += (parseFloat(i.value)||0));
+            const tG = gInputs + (parseFloat(document.getElementById('g_efe_caja').value) || 0);
+            document.getElementById('resTotalGastos').innerText = tG.toFixed(2);
+            
+            let mano = 0; const bl = document.getElementById('listaBilletes'); bl.innerHTML = "";
             [100, 50, 20, 10, 5, 2, 1].forEach(d => {
-                const cant = c.billetes[d] || 0;
-                mano += (cant * d);
-                bl.innerHTML += `<div class="flex justify-between border-b p-1 text-xs"><span>${d} $</span><input type="number" value="${cant||''}" class="w-12 text-center font-bold" onchange="updB(${d},parseInt(this.value))"></div>`;
+                const c = db.diario.billetes[d] || 0; mano += (c * d);
+                bl.innerHTML += `<div class="flex justify-between border-b text-[10px]"><span>${d}$</span><input type="number" class="w-10 font-bold" value="${c||''}" onchange="updB(${d},parseInt(this.value))"></div>`;
             });
-            document.getElementById('totalMano').innerText = mano.toFixed(2);
+            document.getElementById('resFisico').innerText = mano.toFixed(2);
 
-            // Cuadre Inteligente
-            document.getElementById('resVentaUsd').innerText = tUsd.toFixed(2);
-            document.getElementById('resVentaBs').innerText = tBsFact.toFixed(2);
-            const status = document.getElementById('statusCuadre');
             const diff = mano - tUsd;
-            if(Math.abs(diff) < 0.01) { status.innerText = "CUADRA ✅"; status.className = "col-span-1 flex items-center justify-center border-2 border-green-600 font-black text-xl italic bg-green-50 text-green-700"; }
-            else { status.innerText = (diff > 0 ? "SOBRA: " : "FALTA: ") + Math.abs(diff).toFixed(2); status.className = "col-span-1 flex items-center justify-center border-2 border-red-600 font-black text-xl italic bg-red-50 text-red-700"; }
+            document.getElementById('valStatus').innerText = Math.abs(diff).toFixed(2);
+            const st = document.getElementById('txtStatus');
+            st.innerText = Math.abs(diff) < 0.01 ? "CUADRADO ✅" : (diff > 0 ? "SOBRANTE" : "FALTANTE");
+            st.className = "text-xl font-black italic " + (Math.abs(diff) < 0.01 ? "text-green-600" : "text-red-600");
 
-            localStorage.setItem('moto_db_final', JSON.stringify(app));
+            localStorage.setItem('moto_jesus_v6', JSON.stringify(db));
         }
 
-        function updV(i,k,v) { app.caja.ventas[i][k] = v; render(); }
-        function updB(d,v) { app.caja.billetes[d] = v; render(); }
+        function updV(i,k,v) { db.diario.ventas[i][k] = v; calcularTodo(); }
+        function updB(d,v) { db.diario.billetes[d] = v; calcularTodo(); }
 
-        function guardarDia() {
-            if(!confirm("¿Cerrar caja?")) return;
-            const tasa = parseFloat(document.getElementById('tasa').value);
-            const resumen = {
-                fecha: document.getElementById('fechaCaja').value,
-                tasa: tasa,
-                cli: app.caja.ventas.reduce((a,b)=>a+(b.cli||0),0),
-                usd: app.caja.ventas.reduce((a,b)=>a+(b.usd||0) + (((b.bsE||0)+(b.deb||0)+(b.pm||0))/tasa),0),
-                bs: app.caja.ventas.reduce((a,b)=>a+(b.bsE||0)+(b.deb||0)+(b.pm||0),0)
-            };
-            app.historial.push(resumen);
-            
-            // Cambio de fecha
-            let [dia, mes] = resumen.fecha.split('-');
-            document.getElementById('fechaCaja').value = (parseInt(dia)+1) + "-" + mes;
-            
-            app.caja.ventas = Array(15).fill().map(() => ({fact:'', cli:0, usd:0, bsE:0, deb:0, pm:0}));
-            app.caja.billetes = {100:0, 50:0, 20:0, 10:0, 5:0, 2:0, 1:0};
-            render();
-            alert("Guardado en Consolidado.");
-        }
-
-        function switchTab(t) {
-            document.getElementById('view-diario').classList.toggle('hidden', t !== 'diario');
-            document.getElementById('view-consolidado').classList.toggle('hidden', t !== 'consolidado');
-            document.getElementById('tab-diario').classList.toggle('tab-active', t === 'diario');
-            document.getElementById('tab-consolidado').classList.toggle('tab-active', t === 'consolidado');
-            if(t==='consolidado') renderConsolidado();
+        // EDITAR HISTORIAL (Nueva función)
+        function editHist(index, campo, valor) {
+            db.historial[index][campo] = (campo === 'fecha') ? valor : parseFloat(valor);
+            renderConsolidado(); // Recalcula todo el historial inmediatamente
+            localStorage.setItem('moto_jesus_v6', JSON.stringify(db));
         }
 
         function renderConsolidado() {
             const body = document.getElementById('cuerpoHistorial'); body.innerHTML = "";
-            let acmUsd=0, acmBs=0, sumTasa=0;
-            app.historial.forEach((h, i) => {
-                acmUsd += h.usd; acmBs += h.bs; sumTasa += h.tasa;
-                body.innerHTML += `<tr><td>${i+1}</td><td>${h.fecha}</td><td>${h.tasa}</td><td>${h.cli}</td><td>${h.usd.toFixed(2)}</td><td class="font-bold text-blue-700">${acmUsd.toFixed(2)}</td><td class="font-bold text-green-700">${acmBs.toLocaleString()}</td></tr>`;
+            let acmUsd=0, acmBs=0, sumTasa=0, tCli=0, tUsdNeto=0;
+
+            db.historial.forEach((h, i) => {
+                // Cálculo automático de la Venta Real Diaria si se editó algo
+                const vtaRealDia = h.usdEfectivo + (h.bsTotal / h.tasa);
+                acmUsd += vtaRealDia;
+                acmBs += h.bsTotal;
+                sumTasa += h.tasa;
+                tCli += h.cli;
+                tUsdNeto += h.usdEfectivo;
+
+                body.innerHTML += `<tr>
+                    <td>${i+1}</td>
+                    <td><input value="${h.fecha}" onchange="editHist(${i},'fecha',this.value)"></td>
+                    <td><input type="number" step="0.01" value="${h.tasa}" onchange="editHist(${i},'tasa',this.value)"></td>
+                    <td><input type="number" value="${h.cli}" onchange="editHist(${i},'cli',this.value)"></td>
+                    <td><input type="number" step="0.01" value="${h.usdEfectivo}" onchange="editHist(${i},'usdEfectivo',this.value)"></td>
+                    <td class="font-bold bg-blue-50">${vtaRealDia.toFixed(2)}</td>
+                    <td class="bg-acum">${acmUsd.toFixed(2)}</td>
+                    <td>${(sumTasa/(i+1)).toFixed(2)}</td>
+                    <td><input type="number" value="${h.bsTotal}" onchange="editHist(${i},'bsTotal',this.value)"></td>
+                    <td class="bg-acum">${acmBs.toLocaleString()}</td>
+                </tr>`;
             });
-            document.getElementById('conTotalUsd').innerText = acmUsd.toFixed(2);
-            document.getElementById('conTasaAvg').innerText = (sumTasa/app.historial.length || 0).toFixed(3);
+
+            // Resumen Superior (Imagen 3a736d)
+            document.getElementById('resumVtaUsd').innerText = acmUsd.toFixed(2);
+            document.getElementById('resumVtaBs').innerText = acmBs.toLocaleString();
+            document.getElementById('resumCli').innerText = tCli;
+            document.getElementById('resumProm').innerText = (acmUsd/db.historial.length || 0).toFixed(2);
         }
 
-        render();
+        function guardarCierre() {
+            if(!confirm("¿Registrar los datos actuales en el historial mensual?")) return;
+            const tasa = parseFloat(document.getElementById('tasa').value);
+            const vtas = db.diario.ventas;
+            
+            db.historial.push({
+                fecha: document.getElementById('fechaAct').value,
+                tasa: tasa,
+                cli: vtas.reduce((a,b)=>a+(b.cli||0),0),
+                usdEfectivo: vtas.reduce((a,b)=>a+(b.usd||0),0),
+                bsTotal: vtas.reduce((a,b)=>a+(b.bsE||0)+(b.deb||0)+(b.pm||0),0)
+            });
+
+            // Siguiente día automático
+            let [dia, mes] = document.getElementById('fechaAct').value.split('-');
+            document.getElementById('fechaAct').value = (parseInt(dia)+1) + "-" + mes;
+            
+            // Limpiar caja diaria
+            db.diario.ventas = Array(12).fill().map(() => ({fact:'', cli:0, usd:0, bsE:0, deb:0, pm:0}));
+            calcularTodo();
+            alert("Día registrado. Revisa la pestaña de Consolidado.");
+        }
+
+        function cambiarPestana(p) {
+            document.getElementById('view-diario').classList.toggle('hidden', p !== 'diario');
+            document.getElementById('view-consolidado').classList.toggle('hidden', p !== 'consolidado');
+            document.getElementById('btn-diario').className = "tab-btn " + (p==='diario' ? "active-tab" : "bg-gray-200");
+            document.getElementById('btn-consolidado').className = "tab-btn " + (p==='consolidado' ? "active-tab" : "bg-gray-200");
+            if(p==='consolidado') renderConsolidado();
+        }
+
+        calcularTodo();
     </script>
 </body>
 </html>
